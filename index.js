@@ -5,6 +5,8 @@ const readline = require('readline')
 require('dotenv').config()
 var Writable = require('stream').Writable;
 
+
+// debugged an issue with the passwords being visible by using a new variable that emulates the console input https://stackoverflow.com/a/33500118
 var mutableStdout = new Writable({
   write: function(chunk, encoding, callback) {
     if (!this.muted)
@@ -13,7 +15,7 @@ var mutableStdout = new Writable({
   }
 });
 
-var emailAcc = nodemailer.createTransport({
+var emailAcc = nodemailer.createTransport({ // learned nodemailer from w3schools https://www.w3schools.com/nodejs/nodejs_email.asp
     service: 'gmail',
     auth: {
       user: 'aptasktesting@gmail.com',
@@ -118,7 +120,9 @@ async function signup() {
             console.log("Email validated. You can now log in with your credentials.")
         })
     })
-    init()
+    setTimeout(async function() {
+        init()
+    }, 500)
 }
 
 async function asknamelogin() {
@@ -146,15 +150,17 @@ async function askpasslogin(id) {
     mutableStdout.muted = true
     let pass = await new Promise(resolve => rl.question(`Hey ${user.username}! Enter your password: `, resolve));
     mutableStdout.muted = false
+    let pcheck
     bcrypt.compare(pass, user.password, function(err, result) {
+        pcheck = result
         if (result) {
-            return loginlol = true
+            console.log(`Logged in as ${logins[id - 1].username}! There is no further purpose to this program, so you will be logged out momentarily.`)
+            return init()
         } else {
             console.log("Invalid password.")
-            askpasslogin(id)
+            return askpasslogin(id)
         }
     });
-    return loginlol
 } 
 
 async function login() {
@@ -162,11 +168,6 @@ async function login() {
     let pass
     if (id) {
         pass = await askpasslogin(id)
-    }
-    let logins = JSON.parse(fs.readFileSync('./data/passwords.json', 'utf-8'))
-    if (pass == true) {
-        console.log(`Logged in as ${logins[id - 1].username}! There is no further purpose to this program, so you will be logged out momentarily.`)
-        return init()
     }
 }
 
